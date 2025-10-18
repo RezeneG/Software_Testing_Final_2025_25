@@ -1,0 +1,37 @@
+online-bookstore
+│
+├── .github/
+│   └── workflows/
+│       └── research-pipeline.yml
+│
+├── research/
+│   ├── __init__.py
+│   ├── report_generator.py
+│   ├── statistical_analysis.py
+│   ├── generate_dashboard.py
+│   └── publish_summary.py
+│
+├── tests/
+│   ├── research/
+│   │   ├── test_advanced_methodologies.py
+│   │   └── __init__.py
+│   │
+│   ├── performance/
+│   │   ├── research_benchmarks.py
+│   │   ├── analyze_profile.py
+│   │   └── __init__.py
+│   │
+│   ├── unit/
+│   │   ├── test_models.py
+│   │   └── __init__.py
+│   │
+│   └── integration/
+│       ├── test_workflows.py
+│       └── __init__.py
+│
+├── app.py
+├── app_optimized.py
+├── requirements.txt
+├── requirements-research.txt
+├── pytest.ini
+└── README-RESEARH.md
