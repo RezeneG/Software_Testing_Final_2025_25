@@ -1,0 +1,282 @@
+"""
+Masters Research: Advanced Unit Testing with Academic Rigor
+Testing research-optimized application models
+"""
+
+import pytest
+import sys
+import os
+import json
+from decimal import Decimal
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+from app_optimized import (
+    calculate_cart_total_research,
+    validate_payment_research,
+    apply_discount_research,
+    ResearchCache,
+    luhn_check,
+    validate_expiry_date
+)
+
+
+class TestResearchOptimizations:
+    """Research-focused unit tests for optimized implementations"""
+    
+    def test_cart_calculation_research_precision(self):
+        """Research: Test financial calculation precision"""
+        # Test case with known floating-point challenge
+        items = [
+            {'price': 0.1, 'quantity': 3},
+            {'price': 0.2, 'quantity': 1}
+        ]
+        
+        result = calculate_cart_total_research(items)
+        expected = 0.5  # 0.1*3 + 0.2*1 = 0.5
+        
+        # Research: Precision assertion with tolerance
+        assert abs(result - expected) < 0.001, f"Precision error: {result} vs {expected}"
+        
+    def test_cart_calculation_edge_cases_research(self):
+        """Research: Comprehensive edge case testing"""
+        test_cases = [
+            # (items, expected, description)
+            ([], 0.0, "Empty cart"),
+            ([{'price': 0.0, 'quantity': 5}], 0.0, "Zero price"),
+            ([{'price': 10.0, 'quantity': 0}], 0.0, "Zero quantity"),
+            ([{'price': -5.0, 'quantity': 2}], 0.0, "Negative price"),
+            ([{'price': 10.0, 'quantity': -1}], 0.0, "Negative quantity"),
+            ([{'price': 1e6, 'quantity': 1e6}], 1e12, "Large numbers"),
+        ]
+        
+        for items, expected, description in test_cases:
+            result = calculate_cart_total_research(items)
+            assert result == expected, f"Edge case failed: {description}"
+            
+    def test_payment_validation_research_comprehensive(self):
+        """Research: Comprehensive payment validation testing"""
+        # Valid test case
+        valid_card = {
+            'number': '4111111111111111',
+            'expiry': '12/2025',
+            'cvv': '123',
+            'amount': 100.00
+        }
+        
+        result = validate_payment_research(valid_card)
+        assert result['success'] == True
+        assert len(result['errors']) == 0
+        
+    def test_payment_validation_research_invalid_cases(self):
+        """Research: Invalid payment scenario testing"""
+        invalid_cases = [
+            # (card_data, expected_errors, description)
+            (
+                {'number': '4111111111111111', 'expiry': '12/2025', 'cvv': '123'},
+                ['Test card number rejected'],
+                'Test card rejection'
+            ),
+            (
+                {'number': '1234', 'expiry': '12/2025', 'cvv': '123'},
+                ['Invalid card number length'],
+                'Short card number'
+            ),
+            (
+                {'number': '4111111111111111', 'expiry': '01/2020', 'cvv': '123'},
+                ['Invalid or expired card'],
+                'Expired card'
+            ),
+        ]
+        
+        for card_data, expected_errors, description in invalid_cases:
+            result = validate_payment_research(card_data)
+            assert result['success'] == False, f"Should fail: {description}"
+            assert any(error in result['errors'] for error in expected_errors), \
+                f"Missing expected error for: {description}"
+                
+    def test_discount_application_research_performance(self):
+        """Research: Discount application performance testing"""
+        # Test cache performance
+        subtotal = 100.0
+        discount_code = 'SAVE10'
+        
+        # First call - should compute
+        result1 = apply_discount_research(subtotal, discount_code)
+        
+        # Second call - should use cache
+        result2 = apply_discount_research(subtotal, discount_code)
+        
+        assert result1 == result2 == 90.0
+        # Research: Cache should ensure identical results
+        
+    def test_research_cache_implementation(self):
+        """Research: Test custom cache implementation"""
+        cache = ResearchCache(max_size=2)
+        
+        # Test basic functionality
+        cache.set('key1', 'value1')
+        assert cache.get('key1') == 'value1'
+        
+        # Test eviction policy
+        cache.set('key2', 'value2')
+        cache.set('key3', 'value3')  # Should evict key1
+        
+        assert cache.get('key1') is None
+        assert cache.get('key2') == 'value2'
+        assert cache.get('key3') == 'value3'
+        
+    def test_luhn_algorithm_research(self):
+        """Research: Test Luhn algorithm implementation"""
+        # Valid test cases (real test numbers)
+        valid_numbers = [
+            '4111111111111111',  # Visa test
+            '5555555555554444',  # Mastercard test
+            '378282246310005',   # Amex test
+        ]
+        
+        for number in valid_numbers:
+            assert luhn_check(number) == True, f"Valid number failed: {number}"
+            
+        # Invalid test cases
+        invalid_numbers = [
+            '4111111111111112',  # Invalid check digit
+            '1234567812345678',  # Invalid number
+        ]
+        
+        for number in invalid_numbers:
+            assert luhn_check(number) == False, f"Invalid number passed: {number}"
+            
+    def test_expiry_date_validation_research(self):
+        """Research: Test expiry date validation"""
+        valid_cases = [
+            ('12/2025', True, 'Future date'),
+            ('01/2030', True, 'Distant future'),
+        ]
+        
+        invalid_cases = [
+            ('13/2025', False, 'Invalid month'),
+            ('00/2025', False, 'Zero month'),
+            ('12/2020', False, 'Past date'),
+            ('12/25', True, 'Short year'),  # Should handle this
+        ]
+        
+        for expiry, expected, description in valid_cases:
+            assert validate_expiry_date(expiry) == expected, \
+                f"Valid case failed: {description}"
+                
+        for expiry, expected, description in invalid_cases:
+            assert validate_expiry_date(expiry) == expected, \
+                f"Invalid case failed: {description}"
+
+
+class TestResearchComparison:
+    """Research: Comparative testing of original vs optimized implementations"""
+    
+    def test_performance_comparison_cart_calculation(self):
+        """Research: Performance comparison between implementations"""
+        import timeit
+        
+        test_items = [{'price': i * 1.5, 'quantity': (i % 10) + 1} for i in range(100)]
+        
+        # Time original implementation
+        original_time = timeit.timeit(
+            lambda: calculate_cart_total_original(test_items),
+            number=1000
+        )
+        
+        # Time research implementation
+        research_time = timeit.timeit(
+            lambda: calculate_cart_total_research(test_items),
+            number=1000
+        )
+        
+        # Research: Assert performance improvement
+        improvement_ratio = original_time / research_time
+        print(f"Performance improvement ratio: {improvement_ratio:.2f}")
+        
+        # Research: Should be at least as fast
+        assert research_time <= original_time * 1.1, \
+            "Research implementation should not be significantly slower"
+            
+    def test_precision_comparison(self):
+        """Research: Precision comparison between implementations"""
+        # Test case known to cause floating-point issues
+        items = [
+            {'price': 0.1, 'quantity': 7},
+            {'price': 0.2, 'quantity': 3}
+        ]
+        
+        original_result = calculate_cart_total_original(items)
+        research_result = calculate_cart_total_research(items)
+        
+        # Research: Research implementation should be more precise
+        expected = 1.3  # 0.1*7 + 0.2*3 = 1.3
+        
+        original_error = abs(original_result - expected)
+        research_error = abs(research_result - expected)
+        
+        print(f"Original error: {original_error:.10f}")
+        print(f"Research error: {research_error:.10f}")
+        
+        assert research_error <= original_error, \
+            "Research implementation should have equal or better precision"
+
+
+@pytest.mark.research
+class TestResearchMetrics:
+    """Research: Tests focused on research metrics and academic contributions"""
+    
+    def test_cache_performance_metrics(self):
+        """Research: Test cache performance metric collection"""
+        cache = ResearchCache()
+        
+        # Populate cache
+        for i in range(10):
+            cache.set(f'key{i}', f'value{i}')
+            
+        # Generate hits and misses
+        for i in range(5):  # Hits
+            cache.get(f'key{i}')
+            
+        for i in range(10, 15):  # Misses
+            cache.get(f'key{i}')
+            
+        hit_ratio = cache.hit_ratio()
+        expected_ratio = 5 / 10  # 5 hits out of 10 total requests
+        
+        assert abs(hit_ratio - expected_ratio) < 0.001
+        assert cache.hit_count == 5
+        assert cache.miss_count == 5
+        
+    def test_research_validation_completeness(self):
+        """Research: Test comprehensive validation coverage"""
+        card_data = {
+            'number': '4111111111111111',
+            'expiry': '12/2025', 
+            'cvv': '123',
+            'amount': 100.00
+        }
+        
+        result = validate_payment_research(card_data)
+        
+        # Research: Check for comprehensive validation metrics
+        assert 'research_metrics' in result
+        assert 'validation_timestamp' in result
+        assert result['research_metrics']['validation_depth'] == 'comprehensive'
+        
+    def test_error_handling_resilience(self):
+        """Research: Test error handling and resilience"""
+        # Test with malformed data
+        malformed_items = [
+            {'price': 'invalid', 'quantity': 2},  # String instead of number
+            {'price': 10.0, 'quantity': 'two'},   # String instead of number
+            {},  # Empty item
+            None,  # Null item
+        ]
+        
+        # Research: Should handle gracefully without crashing
+        result = calculate_cart_total_research(malformed_items)
+        
+        # Should return 0 or handle gracefully
+        assert result == 0.0 or isinstance(result, float)
