@@ -1,1 +1,398 @@
+"""
+Masters Research: Advanced Performance Benchmarking
+Implementing academic performance analysis methodologies
+"""
+
+import timeit
+import cProfile
+import pstats
+import io
+import numpy as np
+from scipy import stats
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import json
+import statistics
+from memory_profiler import memory_usage
+import resource
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
+from app import calculate_cart_total, calculate_cart_total_optimized
+
+
+class ResearchPerformanceAnalyzer:
+    """
+    Advanced performance analysis with academic rigor
+    Implements methodologies from performance engineering research
+    """
+    
+    def __init__(self):
+        self.results = {}
+        self.confidence_level = 0.95
+        self.min_sample_size = 30  # For statistical significance
+    
+    def benchmark_with_confidence(self, func, setup=None, number=1000):
+        """
+        Research: Benchmark with statistical confidence intervals
+        Based on Jain (1991) performance analysis principles
+        """
+        print(f"\n=== RESEARCH: CONFIDENCE-BASED BENCHMARKING ===")
+        print(f"Function: {func.__name__}")
+        print(f"Sample size: {self.min_sample_size}")
+        print(f"Confidence level: {self.confidence_level}")
+        
+        execution_times = []
+        
+        for i in range(self.min_sample_size):
+            timer = timeit.Timer(stmt=func, setup=setup)
+            execution_time = timer.timeit(number=number) / number
+            execution_times.append(execution_time)
+        
+        # Statistical analysis
+        mean_time = statistics.mean(execution_times)
+        std_dev = statistics.stdev(execution_times)
+        sem = std_dev / np.sqrt(len(execution_times))  # Standard error of mean
+        
+        # Confidence interval (t-distribution for small samples)
+        if len(execution_times) < 30:
+            t_value = stats.t.ppf((1 + self.confidence_level) / 2, len(execution_times) - 1)
+        else:
+            t_value = stats.norm.ppf((1 + self.confidence_level) / 2)
+        
+        confidence_interval = t_value * sem
+        
+        # Research metrics
+        coefficient_of_variation = std_dev / mean_time
+        efficiency_score = self.calculate_efficiency_score(mean_time, std_dev)
+        
+        result = {
+            'mean_time': mean_time,
+            'std_dev': std_dev,
+            'confidence_interval': confidence_interval,
+            'confidence_lower': mean_time - confidence_interval,
+            'confidence_upper': mean_time + confidence_interval,
+            'coefficient_of_variation': coefficient_of_variation,
+            'efficiency_score': efficiency_score,
+            'sample_size': len(execution_times),
+            'raw_times': execution_times
+        }
+        
+        print(f"Mean execution time: {mean_time:.6f} ± {confidence_interval:.6f} seconds")
+        print(f"Coefficient of variation: {coefficient_of_variation:.3f}")
+        print(f"Efficiency score: {efficiency_score:.3f}")
+        
+        return result
+    
+    def memory_usage_analysis(self, func, *args, **kwargs):
+        """
+        Research: Comprehensive memory usage analysis
+        """
+        print(f"\n=== RESEARCH: MEMORY USAGE ANALYSIS ===")
+        
+        def wrapped_func():
+            return func(*args, **kwargs)
+        
+        # Memory profiling
+        mem_usage = memory_usage((wrapped_func,), interval=0.1, timeout=1)
+        
+        peak_memory = max(mem_usage)
+        avg_memory = statistics.mean(mem_usage)
+        memory_variance = statistics.variance(mem_usage)
+        
+        result = {
+            'peak_memory_mb': peak_memory,
+            'average_memory_mb': avg_memory,
+            'memory_variance': memory_variance,
+            'memory_timeline': mem_usage
+        }
+        
+        print(f"Peak memory usage: {peak_memory:.2f} MB")
+        print(f"Average memory usage: {avg_memory:.2f} MB")
+        print(f"Memory variance: {memory_variance:.3f}")
+        
+        return result
+    
+    def scalability_analysis(self, func, input_generator):
+        """
+        Research: Scalability and complexity analysis
+        Measures how performance scales with input size
+        """
+        print(f"\n=== RESEARCH: SCALABILITY ANALYSIS ===")
+        
+        input_sizes = [10, 100, 1000, 5000, 10000]
+        execution_times = []
+        memory_usages = []
+        
+        for size in input_sizes:
+            test_input = input_generator(size)
+            
+            # Time scalability
+            timer = timeit.Timer(lambda: func(test_input))
+            time_result = timer.timeit(number=100) / 100
+            execution_times.append(time_result)
+            
+            # Memory scalability
+            mem_result = max(memory_usage((func, (test_input,)), interval=0.1))
+            memory_usages.append(mem_result)
+            
+            print(f"Input size {size}: {time_result:.6f}s, {mem_result:.2f}MB")
+        
+        # Complexity analysis
+        time_complexity = self.estimate_complexity(input_sizes, execution_times)
+        space_complexity = self.estimate_complexity(input_sizes, memory_usages)
+        
+        result = {
+            'input_sizes': input_sizes,
+            'execution_times': execution_times,
+            'memory_usages': memory_usages,
+            'time_complexity': time_complexity,
+            'space_complexity': space_complexity
+        }
+        
+        print(f"Estimated time complexity: O({time_complexity})")
+        print(f"Estimated space complexity: O({space_complexity})")
+        
+        return result
+    
+    def comparative_analysis(self, original_func, optimized_func, test_cases):
+        """
+        Research: Comparative performance analysis
+        Statistical comparison of original vs optimized implementations
+        """
+        print(f"\n=== RESEARCH: COMPARATIVE ANALYSIS ===")
+        
+        original_results = []
+        optimized_results = []
+        
+        for test_case in test_cases:
+            # Benchmark original
+            timer = timeit.Timer(lambda: original_func(test_case))
+            original_time = timer.timeit(number=1000) / 1000
+            original_results.append(original_time)
+            
+            # Benchmark optimized
+            timer = timeit.Timer(lambda: optimized_func(test_case))
+            optimized_time = timer.timeit(number=1000) / 1000
+            optimized_results.append(optimized_time)
+        
+        # Statistical significance test
+        t_stat, p_value = stats.ttest_rel(original_results, optimized_results)
+        
+        # Improvement analysis
+        improvements = [(orig - opt) / orig * 100 for orig, opt in zip(original_results, optimized_results)]
+        avg_improvement = statistics.mean(improvements)
+        improvement_std = statistics.stdev(improvements)
+        
+        result = {
+            'original_mean': statistics.mean(original_results),
+            'optimized_mean': statistics.mean(optimized_results),
+            't_statistic': t_stat,
+            'p_value': p_value,
+            'statistically_significant': p_value < 0.05,
+            'average_improvement_percent': avg_improvement,
+            'improvement_std': improvement_std,
+            'improvement_range': (min(improvements), max(improvements))
+        }
+        
+        print(f"Original mean: {result['original_mean']:.6f}s")
+        print(f"Optimized mean: {result['optimized_mean']:.6f}s")
+        print(f"Average improvement: {avg_improvement:.1f}%")
+        print(f"Statistical significance: {result['statistically_significant']} (p={p_value:.4f})")
+        
+        return result
+    
+    def profile_optimization_impact(self, func, profile_name):
+        """
+        Research: Detailed profiling with optimization impact analysis
+        """
+        print(f"\n=== RESEARCH: OPTIMIZATION IMPACT PROFILING ===")
+        
+        # cProfile analysis
+        profiler = cProfile.Profile()
+        profiler.enable()
+        
+        # Execute function multiple times for meaningful profile
+        for _ in range(1000):
+            func()
+        
+        profiler.disable()
+        
+        # Generate detailed statistics
+        stream = io.StringIO()
+        stats = pstats.Stats(profiler, stream=stream)
+        stats.sort_stats('cumulative')
+        stats.print_stats(20)  # Top 20 functions
+        
+        profile_output = stream.getvalue()
+        
+        # Research: Extract key metrics
+        metrics = self.analyze_profile_data(stats)
+        metrics['raw_profile'] = profile_output
+        
+        print(f"Profile analysis complete for {profile_name}")
+        print(f"Most time-consuming functions captured")
+        
+        return metrics
+    
+    def research_workload_modeling(self):
+        """
+        Research: Realistic workload modeling for performance testing
+        Based on production traffic patterns and user behavior research
+        """
+        print(f"\n=== RESEARCH: WORKLOAD MODELING ===")
+        
+        workload_patterns = {
+            'browsing_light': self.generate_light_workload(),
+            'browsing_heavy': self.generate_heavy_workload(),
+            'checkout_process': self.generate_checkout_workload(),
+            'admin_operations': self.generate_admin_workload()
+        }
+        
+        workload_analysis = {}
+        
+        for pattern_name, workload in workload_patterns.items():
+            print(f"Analyzing workload: {pattern_name}")
+            
+            # Performance under specific workload
+            performance = self.analyze_workload_performance(workload)
+            workload_analysis[pattern_name] = performance
+            
+            print(f"  Mean response: {performance['mean_response_time']:.4f}s")
+            print(f"  Peak memory: {performance['peak_memory']:.2f}MB")
+        
+        return workload_analysis
+    
+    # Research helper methods
+    def calculate_efficiency_score(self, mean_time, std_dev):
+        """Calculate efficiency score based on performance characteristics"""
+        # Research: Composite score considering both speed and consistency
+        speed_score = 1 / (1 + mean_time * 1000)  # Normalized speed
+        consistency_score = 1 / (1 + std_dev * 1000)  # Normalized consistency
+        return 0.7 * speed_score + 0.3 * consistency_score
+    
+    def estimate_complexity(self, sizes, measurements):
+        """Estimate algorithmic complexity from empirical data"""
+        # Research: Fit common complexity curves to data
+        log_sizes = np.log(sizes)
+        log_measurements = np.log(measurements)
+        
+        # Linear regression for log-log plot slope
+        slope, _, r_value, _, _ = stats.linregress(log_sizes, log_measurements)
+        
+        # Map slope to complexity class
+        if slope < 0.5:
+            return "1"  # Constant
+        elif slope < 1.5:
+            return "n"  # Linear
+        elif slope < 2.5:
+            return "n²"  # Quadratic
+        else:
+            return "n³"  # Cubic
+    
+    def analyze_profile_data(self, stats):
+        """Analyze profiling data for research insights"""
+        metrics = {
+            'total_function_calls': 0,
+            'primitive_calls': 0,
+            'total_time': 0,
+            'time_per_call': 0,
+            'most_expensive_functions': []
+        }
+        
+        # Extract metrics from stats (simplified)
+        # In practice, would parse the stats object more thoroughly
+        return metrics
+    
+    def generate_light_workload(self):
+        """Generate light browsing workload"""
+        return [{'price': i * 5.0, 'quantity': 1} for i in range(5)]
+    
+    def generate_heavy_workload(self):
+        """Generate heavy browsing workload"""
+        return [{'price': i * 2.0, 'quantity': (i % 10) + 1} for i in range(100)]
+    
+    def generate_checkout_workload(self):
+        """Generate checkout process workload"""
+        return [{'price': 15.99, 'quantity': 2}, {'price': 12.50, 'quantity': 1}]
+    
+    def generate_admin_workload(self):
+        """Generate admin operations workload"""
+        return [{'price': i * 10.0, 'quantity': 5} for i in range(50)]
+    
+    def analyze_workload_performance(self, workload):
+        """Analyze performance under specific workload"""
+        # Time performance
+        timer = timeit.Timer(lambda: calculate_cart_total_optimized(workload))
+        times = [timer.timeit(number=1) for _ in range(100)]
+        
+        # Memory performance
+        mem_usage = memory_usage((calculate_cart_total_optimized, (workload,)), interval=0.1)
+        
+        return {
+            'mean_response_time': statistics.mean(times),
+            'response_time_std': statistics.stdev(times),
+            'peak_memory': max(mem_usage),
+            'average_memory': statistics.mean(mem_usage)
+        }
+
+
+def run_comprehensive_research_analysis():
+    """
+    Execute all research performance analyses
+    """
+    print("🎓 MASTERS RESEARCH: COMPREHENSIVE PERFORMANCE ANALYSIS")
+    print("=" * 60)
+    
+    analyzer = ResearchPerformanceAnalyzer()
+    research_results = {}
+    
+    # Test data generation
+    def generate_test_cart(size):
+        return [{'price': i * 1.5, 'quantity': (i % 10) + 1} for i in range(size)]
+    
+    test_cart = generate_test_cart(100)
+    
+    # 1. Confidence-based benchmarking
+    research_results['confidence_benchmark'] = analyzer.benchmark_with_confidence(
+        lambda: calculate_cart_total_optimized(test_cart)
+    )
+    
+    # 2. Memory usage analysis
+    research_results['memory_analysis'] = analyzer.memory_usage_analysis(
+        calculate_cart_total_optimized, test_cart
+    )
+    
+    # 3. Scalability analysis
+    research_results['scalability'] = analyzer.scalability_analysis(
+        calculate_cart_total_optimized,
+        generate_test_cart
+    )
+    
+    # 4. Comparative analysis
+    test_cases = [generate_test_cart(size) for size in [10, 50, 100, 200]]
+    research_results['comparative'] = analyzer.comparative_analysis(
+        calculate_cart_total,
+        calculate_cart_total_optimized,
+        test_cases
+    )
+    
+    # 5. Workload modeling
+    research_results['workload_modeling'] = analyzer.research_workload_modeling()
+    
+    # Save research results
+    with open('research_performance_results.json', 'w') as f:
+        json.dump(research_results, f, indent=2, default=str)
+    
+    print("\n✅ RESEARCH ANALYSIS COMPLETE")
+    print("Results saved to: research_performance_results.json")
+    
+    return research_results
+
+
+if __name__ == "__main__":
+    results = run_comprehensive_research_analysis()
 
