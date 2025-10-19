@@ -1,0 +1,68 @@
+[tool:pytest]
+# Test discovery configuration
+testpaths = tests
+python_files = test_*.py *_test.py
+python_classes = Test* *Test
+python_functions = test_* *_test
+
+# Test execution options
+addopts = 
+    --verbose
+    --color=yes
+    --strict-markers
+    --strict-config
+    --durations=10
+    --tb=short
+    --show-capture=no
+
+# Coverage configuration
+    --cov=app
+    --cov=app_optimized
+    --cov-report=term-missing
+    --cov-report=html:coverage_html
+    --cov-report=xml:coverage.xml
+    --cov-report=json:coverage.json
+
+# Markers for research test categorization
+markers =
+    # Research methodology markers
+    research: research-focused tests (advanced methodologies)
+    performance: performance and benchmark tests
+    integration: integration and workflow tests
+    unit: unit tests for individual components
+    slow: slow-running tests (skip with -m "not slow")
+    
+    # Academic research markers
+    hypothesis: property-based testing with hypothesis
+    mutation: mutation testing scenarios
+    statistical: statistical analysis tests
+    combinatorial: combinatorial testing
+    chaos: chaos engineering tests
+    ai: AI-related testing research
+    
+    # Application-specific markers
+    cart: shopping cart functionality tests
+    payment: payment processing tests
+    discount: discount application tests
+    user: user authentication and session tests
+
+# Filter warnings
+filterwarnings =
+    ignore::DeprecationWarning
+    ignore::UserWarning
+    ignore::pytest.PytestRemovedIn8Warning
+
+# Console output formatting
+console_output_style = classic
+verbosity = 2
+
+# Test execution timeouts (in seconds)
+timeout = 300
+timeout_method = thread
+
+# Parallel execution (if pytest-xdist installed)
+# addopts = --numprocesses=auto
+
+# JUnit XML output for CI/CD
+junit_suite_name = Masters Research Test Suite
+junit_logging = all
