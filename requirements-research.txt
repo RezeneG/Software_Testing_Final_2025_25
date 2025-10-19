@@ -1,5 +1,5 @@
 # Create the corrected requirements file
-cat > requirements-research-fixed.txt << 'EOF'
+cat > requirements-research.txt << 'EOF'
 # Core Application
 Flask==2.3.3
 Werkzeug==2.3.7
@@ -36,3 +36,4 @@ EOF
 
 # Install the corrected requirements
 pip install -r requirements-research-fixed.txt
+
