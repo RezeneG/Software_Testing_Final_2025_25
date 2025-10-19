@@ -25,8 +25,8 @@ seaborn==0.12.2
 flake8==6.0.0
 radon==5.1.0
 bandit==1.7.5
-safety==2.3.5
-packaging==23.1  # ADDED: Fix for black compatibility
+safety==2.3.2  # CHANGED: Downgraded for compatibility
+packaging==23.1  # Keep this version for black compatibility
 
 # Academic Utilities
 jupyter==1.0.0
