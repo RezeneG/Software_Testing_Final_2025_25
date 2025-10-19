@@ -1,0 +1,26 @@
+"""
+Masters Research Testing Package
+Online Bookstore Final Assessment
+"""
+
+__version__ = "1.0.0"
+__author__ = "Your Name"
+__email__ = "your.email@university.edu"
+
+# Test package configuration
+TEST_CONFIG = {
+    "research_grade": True,
+    "coverage_target": 0.85,
+    "performance_benchmarking": True,
+    "statistical_validation": True
+}
+
+# Export key testing components for easy access
+from tests.research.test_advanced_methodologies import ResearchTestingMethodologies
+from tests.performance.research_benchmarks import ResearchPerformanceAnalyzer
+
+__all__ = [
+    'ResearchTestingMethodologies',
+    'ResearchPerformanceAnalyzer',
+    'TEST_CONFIG'
+]
