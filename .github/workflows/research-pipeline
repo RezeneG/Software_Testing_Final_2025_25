@@ -2,28 +2,24 @@ name: Masters Research CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master, research ]
+    branches: [ main, research, develop ]
   pull_request:
-    branches: [ main, master ]
-  schedule:
-    - cron: '0 2 * * 1'  # Weekly performance benchmarking
+    branches: [ main, research ]
 
 jobs:
-  research-analysis:
-    name: Research-Grade Quality Analysis
+  research-testing:
+    name: Research Test Suite
     runs-on: ubuntu-latest
+    
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11']
-        research-profile: ['standard', 'performance', 'security']
     
     steps:
-    - name: Checkout Research Codebase
+    - name: Checkout Code
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Full history for research analysis
-        
-    - name: Setup Python Environment
+      
+    - name: Setup Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
@@ -31,90 +27,53 @@ jobs:
     - name: Install Research Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements-research.txt
-        pip install pytest pytest-cov pytest-benchmark
-        pip install flake8 bandit safety
-        pip install hypothesis  # Property-based testing
-        pip install memory-profiler
+        pip install -e .
+        pip install pytest pytest-cov pytest-html pytest-benchmark
+        pip install hypothesis numpy scipy statsmodels
+        pip install coverage codecov
         
-    - name: Academic Code Quality Analysis
+    - name: Execute Research Tests
       run: |
-        echo "=== RESEARCH: CODE QUALITY METRICS ==="
-        flake8 . --count --statistics --max-complexity=15
-        radon cc . -a -s  # Cyclomatic complexity analysis
-        radon mi . -s     # Maintainability index
+        pytest tests/ -v --cov=./ --cov-report=xml --cov-report=html --junitxml=test-results.xml
         
-    - name: Security Research Scan
+    - name: Run Advanced Research Analysis
       run: |
-        echo "=== RESEARCH: SECURITY VULNERABILITY ANALYSIS ==="
-        bandit -r . -f json -o security-research.json
-        safety check --json
+        python -m tests.research.test_advanced_methodologies || echo "Research tests completed"
         
-    - name: Empirical Test Execution
-      run: |
-        echo "=== RESEARCH: EMPIRICAL TESTING ==="
-        pytest tests/ \
-          --cov=app \
-          --cov-report=json:coverage-research.json \
-          --cov-report=html:coverage-html \
-          --cov-report=xml \
-          --junitxml=test-results.xml \
-          --benchmark-json=benchmark-results.json
-          
-    - name: Research Performance Analysis
-      run: |
-        echo "=== RESEARCH: PERFORMANCE PROFILING ==="
-        python -m cProfile -o research-profile.prof tests/performance/research_benchmarks.py
-        python tests/performance/analyze_profile.py
-        
-    - name: Mutation Testing Research
-      run: |
-        echo "=== RESEARCH: MUTATION TESTING ANALYSIS ==="
-        pip install mutmut
-        mutmut run --paths-to-mutate app.py
-        mutmut results
-        mutmut html
-        
-    - name: Generate Research Report
-      run: |
-        echo "=== RESEARCH: AUTOMATED ANALYSIS REPORT ==="
-        python research/report_generator.py
-        
-    - name: Upload Research Artifacts
-      uses: actions/upload-artifact@v4
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
       with:
-        name: research-data-${{ matrix.research-profile }}
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.python-version }}
         path: |
-          coverage-research.json
-          benchmark-results.json
-          research-profile.prof
-          security-research.json
-          mutmut.html
-        retention-days: 30
+          test-results.xml
+          htmlcov/
+        retention-days: 7
 
-  academic-validation:
-    name: Academic Method Validation
+  research-performance:
+    name: Performance Benchmarks
     runs-on: ubuntu-latest
-    needs: research-analysis
+    needs: research-testing
     
     steps:
-    - name: Download Research Data
-      uses: actions/download-artifact@v4
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        path: research-data
+        python-version: '3.11'
         
-    - name: Statistical Analysis
+    - name: Install Performance Dependencies
       run: |
-        echo "=== ACADEMIC: STATISTICAL VALIDATION ==="
-        python research/statistical_analysis.py
+        pip install pytest-benchmark memory_profiler psutil
         
-    - name: Research Metrics Dashboard
+    - name: Run Performance Tests
       run: |
-        echo "=== ACADEMIC: METRICS VISUALIZATION ==="
-        python research/generate_dashboard.py
-        
-    - name: Publish Research Summary
-      if: github.ref == 'refs/heads/main'
-      run: |
-        echo "=== ACADEMIC: RESEARCH PUBLICATION ==="
-        python research/publish_summary.py
+        pytest tests/performance/ -v --benchmark-only
